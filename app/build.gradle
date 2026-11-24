@@ -1,0 +1,67 @@
+plugins {
+    id 'com.android.application'
+}
+
+// The game itself is the same web folder the iPhone app uses. In the full project (iOS + Android) it is
+// copied from ../TankzorsPro/web into the APK at build time; the stand-alone Android project already has
+// it in src/main/assets/web.
+def webSrc = file("$rootDir/../TankzorsPro/web")
+def sharedWeb = webSrc.exists() && !file('src/main/assets/web/index.html').exists()
+def webAssets = layout.buildDirectory.dir("webassets").get().asFile
+
+tasks.register('copyWeb', Copy) {
+    onlyIf { sharedWeb }
+    from webSrc
+    into new File(webAssets, 'web')
+}
+
+android {
+    namespace 'com.tankzors.pro'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.tankzors.pro'
+        minSdk 24
+        targetSdk 35
+        versionCode 3
+        versionName '1.2'
+    }
+
+    signingConfigs {
+        // your own key: the same key on every build, so a new APK installs over the old one (saves stay)
+        release {
+            storeFile file('tankzors.jks')
+            storePassword 'tankzors'
+            keyAlias 'tankzors'
+            keyPassword 'tankzors'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+        debug {
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main {
+            if (sharedWeb) assets.srcDirs += [webAssets]
+        }
+    }
+
+    androidResources {
+        // game_data.js etc. are big text files: keep the APK small, but never compress media the page streams
+        noCompress 'mid', 'ogg', 'mp3'
+    }
+}
+
+tasks.named('preBuild') { dependsOn 'copyWeb' }

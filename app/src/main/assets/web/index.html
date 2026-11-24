@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Tankzors Pro</title>
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="mp/mp.css">
+<link rel="stylesheet" href="android/touch.css">
+<script src="android/bridge.js"></script>
+</head>
+<body>
+<div id="safe-probe"></div>
+<div id="stage">
+  <div id="screen"><canvas id="lcd" width="240" height="320"></canvas></div>
+
+  <!-- transparent on-screen controls, laid over the game -->
+  <div id="pad">
+    <div class="ctl dpad">
+      <button class="k d up" data-k="-1" aria-label="Вверх"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+      <button class="k d left" data-k="-3" aria-label="Влево"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <button class="k d right" data-k="-4" aria-label="Вправо"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button class="k d down" data-k="-2" aria-label="Вниз"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+      <button class="k d ok" data-k="-5" aria-label="OK"></button>
+    </div>
+
+    <button class="ctl k fire" data-k="-5" aria-label="Огонь"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.3" class="dot"/><path d="M12 2.5v4.5M12 17v4.5M2.5 12H7M17 12h4.5"/></svg></button>
+
+    <div class="ctl supplies">
+      <button class="k sup up" data-k="42" aria-label="Припасы: вверх по списку"><svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5"/></svg></button>
+      <div class="crate"><svg viewBox="0 0 24 24"><path d="M3.5 7.5L12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5L12 12l8.5-4.5M12 12v9"/></svg></div>
+      <button class="k sup down" data-k="35" aria-label="Припасы: вниз по списку"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"/></svg></button>
+    </div>
+
+    <div class="ctl quick">
+      <div class="qi"><button class="k q" data-k="48" aria-label="Задний ход"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg></button><span>назад</span></div>
+      <div class="qi"><button class="k q" data-k="55" aria-label="Ремонт / мастерская"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L3.5 17.5l3 3 5.8-5.8a4 4 0 005.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg></button><span>ремонт</span></div>
+      <div class="qi"><button class="k q" data-k="57" aria-label="Радар"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="1.6"/><path d="M12 13l5-5"/><path d="M5.6 19.4a9 9 0 1112.8 0"/><path d="M8.5 16a5 5 0 117 0"/></svg></button><span>радар</span></div>
+      <div class="qi"><button class="k q" data-k="51" aria-label="Обзор"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button><span>обзор</span></div>
+    </div>
+
+    <div class="topL">
+      <button class="k pill soft" data-k="-6" aria-label="Левая софт-клавиша"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>меню</button>
+      <button class="pill tool" id="btn-num" aria-label="Цифры">123</button>
+      <button class="pill tool" id="btn-mp" aria-label="Сетевая игра">Сеть</button>
+    </div>
+    <div class="topR">
+      <button class="pill tool icon" id="btn-set" aria-label="Настройки"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button>
+      <button class="pill tool icon" id="btn-pad" aria-label="Скрыть кнопки"><svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 5.1A10 10 0 0122 12a15 15 0 01-3 3.7M6.6 6.6A15 15 0 002 12s4 7 10 7a9 9 0 004.4-1.1"/></svg></button>
+      <button class="k pill soft" data-k="-7" aria-label="Правая софт-клавиша">выбор<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+
+    <div class="menubar">
+      <button class="pill mb" data-a="left" aria-label="Влево">◀</button>
+      <button class="pill mb" data-a="ok">OK</button>
+      <button class="pill mb" data-a="right" aria-label="Вправо">▶</button>
+    </div>
+    <div class="shopbar">
+      <button class="pill mb sell" data-a="left">− Продать</button>
+      <button class="pill mb" data-a="ok">Описание</button>
+      <button class="pill mb buy" data-a="right">+ Купить</button>
+      <button class="pill mb buy" data-a="buyMax">Купить макс.</button>
+    </div>
+
+    <div class="ctl numpad">
+      <button class="k n" data-k="49">1</button><button class="k n" data-k="50">2</button><button class="k n" data-k="51">3</button>
+      <button class="k n" data-k="52">4</button><button class="k n" data-k="53">5</button><button class="k n" data-k="54">6</button>
+      <button class="k n" data-k="55">7</button><button class="k n" data-k="56">8</button><button class="k n" data-k="57">9</button>
+      <button class="k n" data-k="42">*</button><button class="k n" data-k="48">0</button><button class="k n" data-k="35">#</button>
+    </div>
+  </div>
+  <button id="btn-show-pad" aria-label="Показать кнопки"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+</div>
+
+<div id="settings" hidden>
+  <div class="sheet">
+    <h2>Настройки</h2>
+    <div class="row"><span>Язык игры</span>
+      <div class="seg" id="set-lang"><button data-v="rus">Русский</button><button data-v="eng">English</button></div></div>
+    <div class="note" id="lang-note" hidden>Игра перезапустится. Сохранения останутся.</div>
+    <div class="row"><span>Прозрачность кнопок</span><input type="range" id="set-op" min="30" max="100" step="5"></div>
+    <div class="row"><span>Размер кнопок</span><input type="range" id="set-size" min="75" max="130" step="5"></div>
+    <div class="row"><span>Звуки выстрелов и мотора</span><div class="seg" id="set-sfx"><button data-v="1">Вкл</button><button data-v="0">Выкл</button></div></div>
+    <div class="row"><span>Отклик вибрацией</span><div class="seg" id="set-haptic"><button data-v="1">Вкл</button><button data-v="0">Выкл</button></div></div>
+    <div class="row"><span>Кнопки на экране</span><div class="seg" id="set-pad"><button data-v="1">Показать</button><button data-v="0">Скрыть</button></div></div>
+    <div class="help">
+      <b>Управление</b><br>
+      В меню — просто нажимайте на пункты пальцем, длинные тексты листаются свайпом.<br>
+      В бою: крестовина — танк, красная кнопка — огонь.<br>
+      <b>Припасы</b> ▲▼ — список (снаряды, ремкомплект, ускорение, заморозка…): выбор крестовиной, подтверждение огнём, «меню» — закрыть.<br>
+      <b>назад</b> — задний ход, <b>ремонт</b> — ремкомплект или мастерская на базе, <b>радар</b>, <b>обзор</b> — держать для полного обзора.<br>
+      Пальцем по карте: держите — танк едет туда, тап по танку — меню действий.
+    </div>
+    <button class="close" id="set-close">Готово</button>
+  </div>
+</div>
+
+<div id="loading">Загрузка…</div>
+<pre id="log" hidden></pre>
+
+<script src="js/jvm.js"></script>
+<script src="js/cldc.js"></script>
+<script src="js/midp.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/host.js"></script>
+<script src="game_data.js"></script>
+<script src="map_i18n.js"></script>
+<script src="mp/net.js"></script>
+<script src="mp/engine.js"></script>
+<script src="mp/render.js"></script>
+<script src="mp/lobby.js"></script>
+<script src="js/ui.js"></script>
+<script src="android/touch.js"></script>
+</body>
+</html>
